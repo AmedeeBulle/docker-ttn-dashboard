@@ -57,11 +57,19 @@ set -- proxy-*.conf
 if [ "$1" != "proxy-*.conf" ] ; then
 	echo "add proxy-specs to configuration from:" "$@"
 	sed -e "s/@{FQDN}/${APACHE_FQDN}/g" "$@" > /tmp/proxyspecs.conf || exit 5
-	sed -e '/^ServerName/r/tmp/proxyspecs.conf' /etc/apache2/sites-available/000-default-le-ssl.conf > /tmp/000-default-le-ssl-local.conf || exit 6
-	mv /tmp/000-default-le-ssl-local.conf /etc/apache2/sites-available || exit 7
-	echo "enable the modified site, and disable the ssl defaults"
-	/usr/sbin/a2dissite 000-default-le-ssl.conf || exit 8
-	/usr/sbin/a2ensite 000-default-le-ssl-local.conf || exit 9
+	if [ "$CERTBOT_TEST" != "test" ]; then
+	  sed -e '/^ServerName/r/tmp/proxyspecs.conf' /etc/apache2/sites-available/000-default-le-ssl.conf > /tmp/000-default-le-ssl-local.conf || exit 6
+	  mv /tmp/000-default-le-ssl-local.conf /etc/apache2/sites-available || exit 7
+	  echo "enable the modified site, and disable the ssl defaults"
+	  /usr/sbin/a2dissite 000-default-le-ssl.conf || exit 8
+	  /usr/sbin/a2ensite 000-default-le-ssl-local.conf || exit 9
+	else
+	  sed -e '/ServerName/r/tmp/proxyspecs.conf' /etc/apache2/sites-available/000-default.conf > /tmp/000-default-local.conf || exit 6
+	  sed -i -e 's/https/http/' /tmp/000-default-local.conf
+	  mv /tmp/000-default-local.conf /etc/apache2/sites-available || exit 7
+	  /usr/sbin/a2dissite 000-default.conf || exit 8
+	  /usr/sbin/a2ensite 000-default-local.conf || exit 9
+	fi
 fi
 
 # launch apache

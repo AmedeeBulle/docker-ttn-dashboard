@@ -89,6 +89,7 @@ services:
     environment:
       CERTBOT_DOMAINS: "${TTN_DASHBOARD_CERTBOT_FQDN:-.}"
       CERTBOT_EMAIL: "${TTN_DASHBOARD_CERTBOT_EMAIL:-.}"
+      CERTBOT_TEST: "${TTN_DASHBOARD_CERTBOT_TEST:-.}"
       APACHE_FQDN: "${TTN_DASHBOARD_APACHE_FQDN:-.}"
     restart: unless-stopped
     build: apache
