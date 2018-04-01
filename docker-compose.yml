@@ -124,12 +124,19 @@ services:
 
   influxdb:
     restart: unless-stopped
-    image: influxdb:1.2.4
+    image: influxdb:1.4.2
     volumes:
       - "${TTN_DASHBOARD_DATA}influxdb:/var/lib/influxdb"
+      - ./influxdb/types.db:/usr/share/collectd/types.db:ro
     environment:
+      INFLUXDB_COLLECTD_ENABLED: "true"
+      INFLUXDB_UDP_ENABLED: "true"
+      # Todo: next is Invalid -- do we need a user?
       INFLUXDB_INIT_PWD: "${TTN_DASHBOARD_INFLUXDB_ADMIN_PASSWORD:-!notset}"
-      PRE_CREATE_DB: "${TTN_DASHBOARD_INFLUXDB_INITIAL_DATABASE_NAME:-demo}"
+      INFLUXDB_DB: "${TTN_DASHBOARD_INFLUXDB_INITIAL_DATABASE_NAME:-demo}"
+    ports:
+      - "25826:25826/udp"
+      - "8089:8089/udp"
 
   grafana:
     restart: unless-stopped
