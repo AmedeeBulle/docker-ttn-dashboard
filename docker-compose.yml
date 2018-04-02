@@ -38,6 +38,10 @@
 # TTN_DASHBOARD_CERTBOT_FQDN
 #	The domain(s) to be used by certbot when registering with Let's Encrypt.
 #
+# TTN_DASHBOARD_CERTBOT_TEST
+#   When set to 'test', do not register with Let's Encrypt and only listen to
+#   port 80 (http). Useful for test instances or server on a private network.
+#
 # TTN_DASHBOARD_DATA
 #	The path to the data directory. This must end with a '/', and must either
 #	be absolute or must begin with './'. (If not, you'll get parse errors.)
@@ -69,6 +73,18 @@
 # TTN_DASHBOARD_INFLUXDB_INITIAL_DATABASE_NAME
 #	The inital database to be created on first launch of influxdb. Ignored
 #	after influxdb has been launched.
+#
+# TTN_DASHBOARD_INFLUXDB_COLLECTD
+#   Set to true to enable collectd protocol
+#
+# TTN_DASHBOARD_PORT_INFLUXDB_UDP
+#   Set to true to enable influxdb UDP protocol
+#
+# TTN_DASHBOARD_PORT_INFLUXDB_COLLECTD
+#   The port to listen to for collectd. Do NOT bind to your public interface!
+#
+# TTN_DASHBOARD_PORT_INFLUXDB_UDP
+#   The port to listen to for InfluxDB/UDP. Do NOT bind to your public interface!
 #
 # TTN_DASHBOARD_PORT_HTTP
 #	The port to listen to for HTTP. Primarily for test purposes. Defaults to 
@@ -129,14 +145,14 @@ services:
       - "${TTN_DASHBOARD_DATA}influxdb:/var/lib/influxdb"
       - ./influxdb/types.db:/usr/share/collectd/types.db:ro
     environment:
-      INFLUXDB_COLLECTD_ENABLED: "true"
-      INFLUXDB_UDP_ENABLED: "true"
+      INFLUXDB_COLLECTD_ENABLED: "${TTN_DASHBOARD_INFLUXDB_COLLECTD:-false}"
+      INFLUXDB_UDP_ENABLED: "${TTN_DASHBOARD_INFLUXDB_UDP:-false}"
       # Todo: next is Invalid -- do we need a user?
       INFLUXDB_INIT_PWD: "${TTN_DASHBOARD_INFLUXDB_ADMIN_PASSWORD:-!notset}"
       INFLUXDB_DB: "${TTN_DASHBOARD_INFLUXDB_INITIAL_DATABASE_NAME:-demo}"
     ports:
-      - "25826:25826/udp"
-      - "8089:8089/udp"
+      - "${TTN_DASHBOARD_PORT_INFLUXDB_COLLECTD:-127.0.0.1:25826}:25826/udp"
+      - "${TTN_DASHBOARD_PORT_INFLUXDB_UDP:-127.0.0.1:8089}:8089/udp"
 
   grafana:
     restart: unless-stopped
